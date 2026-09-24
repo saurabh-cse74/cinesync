@@ -6,7 +6,7 @@
   "main": "server/index.js",
   "scripts": {
     "dev": "node server/index.js",
-    "start": "NODE_ENV=production node server/index.js",
+    "start": "node server/index.js",
     "db:migrate": "psql \"postgresql://postgres:1234@localhost:5432/cinesync\" -f db/schema.sql",
     "test": "node --test test/"
   },
