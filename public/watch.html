@@ -1,0 +1,69 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Watch Room — CineSync</title><link rel="stylesheet" href="/styles.css"></head><body>
+<div class="topbar">
+  <div class="row"><div class="brand">Cine<span>Sync</span></div><span id="rname" class="sm dim"></span></div>
+  <div class="row">
+    <span id="sync" class="pill ok">SYNCED ✓</span><span id="net" class="pill ok">🟢 Connected</span>
+    <button class="btn ghost sm" id="invite">Invite</button><a class="btn ghost sm" href="/dashboard">Leave</a>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="player-wrap" id="pane-movie">
+    <video id="main" playsinline></video>
+    <div id="ytwrap" style="display:none"></div>
+    <div id="reactions"></div>
+    <div id="pip" style="display:none"><video id="remote" autoplay playsinline></video><span class="lbl" id="peername">Friend</span></div>
+    <video id="selfcam" autoplay playsinline muted style="display:none"></video>
+
+    <div id="source" class="card" style="position:absolute;inset:0;margin:auto;height:fit-content;max-width:460px">
+      <h2 style="font-size:17px">Choose video source</h2>
+      <p id="wait" class="sm dim" style="margin-top:6px"></p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" onclick="file.click()">Upload video</button>
+        <button class="btn" onclick="urlBox.style.display='block'">Video URL</button>
+        <button class="btn" onclick="shareScreen()">Screen share</button>
+        <button class="btn primary" onclick="demo()">Demo video</button>
+      </div>
+      <input id="file" type="file" accept="video/mp4,video/webm,video/quicktime" style="display:none">
+      <div id="urlBox" style="display:none"><label>Direct video URL (https)</label><input id="u" placeholder="https://example.com/video.mp4">
+        <button class="btn" style="margin-top:10px" onclick="useUrl()">Load</button></div>
+      <p id="prog" class="sm dim" style="margin-top:10px"></p>
+      <p id="serr" class="sm" style="color:#ff7a90"></p>
+    </div>
+
+    <div class="controls">
+      <button class="ico" id="pp">▶</button>
+      <div class="bar" id="bar"><i id="fill" style="width:0"></i></div>
+      <span class="sm dim" id="time">00:00 / 00:00</span>
+      <button class="ico" id="mute">🔊</button>
+      <select id="rate" style="width:auto;padding:4px 6px"><option>0.5</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option></select>
+      <button class="ico" id="pipbtn">⧉</button><button class="ico" id="fs">⛶</button>
+    </div>
+  </div>
+
+  <div class="side" id="pane-side">
+    <div class="card" style="padding:12px">
+      <div class="sm dim" style="letter-spacing:.08em">WATCHING TOGETHER</div>
+      <div id="people" class="sm" style="margin-top:6px"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn sm" id="callbtn">📹 Join call</button>
+        <button class="btn sm" id="micbtn" disabled>🎤</button>
+        <button class="btn sm" id="cambtn" disabled>📷</button>
+        <button class="btn sm" id="hangup" disabled>📞</button>
+      </div>
+      <label id="hostctl" style="display:none"><input type="checkbox" id="everyone" style="width:auto"> Everyone can control playback</label>
+    </div>
+    <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:240px;padding:12px">
+      <div class="sm dim" style="letter-spacing:.08em;margin-bottom:8px">CHAT</div>
+      <div id="chatlog"></div>
+      <div class="row" style="margin-top:8px;flex-wrap:nowrap">
+        <input id="msg" placeholder="Type a message…" maxlength="1000"><button class="btn" id="send">➤</button>
+      </div>
+      <div class="row" style="margin-top:8px" id="emojis"></div>
+    </div>
+  </div>
+</div>
+<div class="tabs"><button class="btn" onclick="tab('movie')">Movie</button><button class="btn" onclick="tab('side')">Chat &amp; People</button></div>
+<script src="/socket.io/socket.io.js"></script><script src="/watch.js"></script></body></html>
