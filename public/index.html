@@ -7,24 +7,36 @@
   <div class="card">
     <h2 style="font-size:19px;margin-bottom:4px">Join CineSync</h2>
     <p class="dim sm">Your camera and mic are only used after you grant permission.</p>
-    <div id="dev" style="margin-top:18px"></div>
+    <form id="login" style="margin-top:18px">
+      <label for="name">Your name</label>
+      <input id="name" name="name" placeholder="Enter your name" maxlength="40" autocomplete="name" required autofocus>
+      <button class="btn primary" id="submit" type="submit" style="width:100%;margin-top:10px">Continue</button>
+    </form>
     <p id="err" class="sm" style="color:#ff7a90;margin-top:12px"></p>
   </div>
 </div>
 <script>
+const loginForm = document.getElementById('login');
+const errorMessage = document.getElementById('err');
 (async () => {
-  const me = await (await fetch('/api/me')).json();
-  if (me.user) return location.href = '/dashboard';
-  dev.innerHTML = `<p class="sm dim" style="margin-bottom:8px">Enter your name to join:</p>
-    <input id="n" placeholder="Your name" maxlength="40" onkeydown="if(event.key==='Enter') devLogin()">
-    <button class="btn primary" style="width:100%;margin-top:10px" onclick="devLogin()">Join</button>`;
-  if (new URLSearchParams(location.search).get('error')) err.textContent = 'Unable to join. Please try again.';
+  try {
+    const me = await (await fetch('/api/me')).json();
+    if (me.user) location.href = '/dashboard';
+  } catch { /* The name form remains available if the session check fails. */ }
+  if (new URLSearchParams(location.search).get('error')) errorMessage.textContent = 'Unable to join. Please try again.';
 })();
-async function devLogin(){
-  const name = n.value.trim();
-  if (!name) return err.textContent = 'Please enter your name.';
-  const r = await fetch('/auth/dev',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name})});
-  const d = await r.json().catch(() => ({}));
-  if (r.ok) location.href = d.redirect || '/dashboard'; else err.textContent = d.error || 'Unable to join.';
-}
+loginForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  if (!name) return errorMessage.textContent = 'Please enter your name.';
+  const button = document.getElementById('submit');
+  button.disabled = true; errorMessage.textContent = '';
+  try {
+    const r = await fetch('/auth/dev',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name})});
+    const d = await r.json().catch(() => ({}));
+    if (r.ok) location.href = d.redirect || '/dashboard';
+    else errorMessage.textContent = d.error || 'Unable to join.';
+  } catch { errorMessage.textContent = 'Unable to connect. Please try again.'; }
+  finally { button.disabled = false; }
+});
 </script></body></html>
