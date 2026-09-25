@@ -1,0 +1,67 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dashboard — CineSync</title><link rel="stylesheet" href="/styles.css"></head><body>
+<div class="topbar"><div class="brand">Cine<span>Sync</span></div>
+  <div class="row"><span id="who" class="sm dim"></span><div class="avatar" id="av"></div>
+  <button class="btn ghost sm" onclick="logout()">Log out</button></div></div>
+<div class="wrap">
+  <h1 id="hi" style="font-size:26px;margin:10px 0 24px"></h1>
+  <div class="grid">
+    <div class="card">
+      <h2 style="font-size:17px">Create Watch Room</h2>
+      <label>Room name</label><input id="rn" placeholder="Movie night">
+      <label>Max participants</label><input id="mx" type="number" value="2" min="2" max="8">
+      <div class="row" style="margin-top:14px">
+        <label style="margin:0"><input type="checkbox" id="ec" style="width:auto"> Everyone can control</label>
+        <label style="margin:0"><input type="checkbox" id="ch" checked style="width:auto"> Chat</label>
+        <label style="margin:0"><input type="checkbox" id="vc" checked style="width:auto"> Video call</label>
+      </div>
+      <button class="btn primary" style="width:100%;margin-top:16px" onclick="create()">Create room</button>
+      <p id="out" class="sm" style="margin-top:12px"></p>
+    </div>
+    <div class="card">
+      <h2 style="font-size:17px">Join Watch Room</h2>
+      <label>Room code</label><input id="jc" placeholder="ROOM-8K4F2A" style="text-transform:uppercase">
+      <button class="btn" style="width:100%;margin-top:14px" onclick="join()">Join</button>
+      <p class="sm dim" style="margin-top:12px">Or just open the invitation link your friend sent you.</p>
+      <p id="jerr" class="sm" style="color:#ff7a90"></p>
+    </div>
+    <div class="card"><h2 style="font-size:17px">My recent rooms</h2><div id="recent" class="sm dim" style="margin-top:10px">Loading…</div></div>
+  </div>
+</div>
+<script>
+let me;
+(async () => {
+  me = (await (await fetch('/api/me')).json()).user;
+  if (!me) return location.href='/';
+  hi.textContent = `Welcome back, ${me.name}`; who.textContent = me.email || '';
+  av.textContent = me.name[0].toUpperCase();
+  const {rooms} = await (await fetch('/api/rooms')).json();
+  recent.replaceChildren();
+  if (!rooms.length) recent.textContent = 'No rooms yet.';
+  rooms.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'row'; row.style.cssText = 'justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line)';
+    const name = document.createElement('span'); name.textContent = r.name;
+    const link = document.createElement('a'); link.href = `/watch/${encodeURIComponent(r.room_code)}`; link.textContent = r.room_code;
+    row.append(name, link); recent.append(row);
+  });
+})();
+async function create(){
+  const r = await fetch('/api/rooms',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({
+    name: rn.value, max: +mx.value, everyoneControls: ec.checked, chat: ch.checked, call: vc.checked })});
+  const d = await r.json();
+  if (!r.ok) return out.textContent = d.error;
+  const link = location.origin + d.url;
+  out.innerHTML = `Room <b>${d.room.room_code}</b> created.
+    <button class="btn sm" style="margin-top:8px" onclick="navigator.clipboard.writeText('${link}');this.textContent='Copied ✓'">Copy invitation link</button>
+    <a class="btn primary sm" style="margin-top:8px" href="${d.url}">Enter room</a>`;
+}
+async function join(){
+  const c = jc.value.trim().toUpperCase();
+  const r = await fetch('/api/rooms/'+encodeURIComponent(c));
+  if (!r.ok) return jerr.textContent = (await r.json()).error;
+  location.href = '/watch/'+c;
+}
+async function logout(){ await fetch('/auth/logout',{method:'POST'}); location.href='/'; }
+</script></body></html>
