@@ -50,12 +50,15 @@ app.post('/auth/dev', rateLimit({ windowMs: 60000, max: 20 }), async (req, res) 
   const name = String(req.body.name || 'Tester').trim().slice(0, 40);
   if (!name) return res.status(400).json({ error: 'Please enter your name.' });
   const u = { id: 'u_guest_' + crypto.createHash('sha1').update(name).digest('hex').slice(0, 10),
-    name, email: `${name.toLowerCase()}@guest.local`, avatar_url: null };
+    name, email: null, avatar_url: null };
   await db.upsertUser(u);
-  req.session.user = { id: u.id, name: u.name, avatar: null, email: u.email };
+  req.session.user = { id: u.id, name: u.name, avatar: null };
   const redirect = req.session.returnTo || '/dashboard';
   delete req.session.returnTo;
-  req.session.save(() => res.json({ ok: true, redirect }));
+  req.session.save(err => {
+    if (err) return res.status(500).json({ error: 'Could not start your session. Please try again.' });
+    res.json({ ok: true, redirect });
+  });
 });
 
 app.post('/auth/logout', (req, res) => req.session.destroy(() => res.json({ ok: true })));

@@ -17,7 +17,8 @@ async function init() {
 async function upsertUser(u) {
   if (!pool) { mem.users.set(u.id, { ...u, created_at: new Date(), last_active: new Date() }); return mem.users.get(u.id); }
   const { rows } = await q(`INSERT INTO users (id,name,email,avatar_url) VALUES ($1,$2,$3,$4)
-    ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, avatar_url=EXCLUDED.avatar_url, last_active=now() RETURNING *`,
+    ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, email=EXCLUDED.email,
+      avatar_url=EXCLUDED.avatar_url, last_active=now() RETURNING *`,
     [u.id, u.name, u.email, u.avatar_url]);
   return rows[0];
 }
